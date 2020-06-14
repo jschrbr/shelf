@@ -1,26 +1,25 @@
 const emailRegEx = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
 
-type Users = {
+interface newUsers {
     email: String,
     password: String,
     confirmPassword: String,
     handle: String,
-    cred: String
 }
+
+interface Users {
+    email: String,
+    password: String,
+}
+
 
 export const empty = (data: String) => {
     return data.trim() === "";
 }
 
-export const isValidUsr = async (usr: Users) => {
-    type Errors = {
-        email: String,
-        password: String,
-        confirmPassword: String,
-        handle: String,
-        cred: String
-    }
-    const errors = {} as Errors
+export const isNewValidUsr = async (usr: newUsers) => {
+
+    const errors = {} as any
     for (const [credential, detail] of Object.entries(usr)) {
         if (empty(detail)) {
             Object.assign({ [credential]: `The ${detail} must not be empty` });
@@ -35,6 +34,26 @@ export const isValidUsr = async (usr: Users) => {
                     if (detail !== usr.confirmPassword) {
                         errors.confirmPassword = `Confirm password must match`;
                     }
+                default:
+                    break;
+            }
+        }
+    }
+    return errors;
+}
+export const isValidUsr = async (usr: Users) => {
+
+    const errors = {} as any
+    for (const [credential, detail] of Object.entries(usr)) {
+        if (empty(detail)) {
+            Object.assign({ [credential]: `The ${detail} must not be empty` });
+        } else {
+            switch (credential) {
+                case "email":
+                    if (!detail.match(emailRegEx)) {
+                        errors.email = `Must be a vaild email address`;
+                    }
+                    break;
                 default:
                     break;
             }

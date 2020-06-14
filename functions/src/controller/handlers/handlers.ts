@@ -1,7 +1,6 @@
 import * as express from 'express';
 import { db, auth } from '../../middleware/admin'
-import { isValidUsr } from '../../utils/validators'
-import { firebaseConfig } from "../../middleware/config"
+import { isNewValidUsr, isValidUsr } from '../../utils/validators'
 
 interface Users {
     email: String,
@@ -11,27 +10,31 @@ interface Users {
     cred: String
 }
 
-export const getTest = async (req: express.Request, res: express.Response) => {
-    res.json({ hello: "hello" })
+interface Parts {
+    createdAt: String,
+    updatedAt: String,
+    name: String,
+    quantity: Number,
 }
 
 export const signup = async (req: express.Request, res: express.Response) => {
     try {
-        const { email, password: password, confirmPassword, handle } = req.body
+        const { email, password, confirmPassword, handle } = req.body
         const newUser = {
             email,
             password,
             confirmPassword,
             handle
         } as Users;
-        const errors = await isValidUsr(newUser);
+        const errors = await isNewValidUsr(newUser);
+
         if (Object.keys(errors).length) {
             return res.status(400).json(errors);
         }
         const doc = await db.doc(`/users/${handle}`).get();
 
         if (doc.exists) {
-            return res.status(400).json({ handle: `this handle is already take` });
+            return res.status(400).json({ handle: `this handle is already taken` });
         }
         const data = await auth.createUserWithEmailAndPassword(
             email,
@@ -45,7 +48,7 @@ export const signup = async (req: express.Request, res: express.Response) => {
                 handle,
                 email,
                 createdAt: new Date().toISOString(),
-                imageUrl: `https://firebasestorage.googleapis.com/v0/b/${firebaseConfig.storageBucket}/o/no-img.png?alt=media`,
+                // imageUrl: `https://firebasestorage.googleapis.com/v0/b/${firebaseConfig.storageBucket}/o/no-img.png?alt=media`,
                 userId,
             };
 
@@ -96,5 +99,82 @@ export const login = async (req: express.Request, res: express.Response) => {
         return res
             .status(403)
             .json({ general: "Wrong credentials, please try again" });
+    }
+}
+
+
+
+export const getParts = async (req: express.Request, res: express.Response) => {
+    try {
+        const data = await db
+            .collection("parts")
+            .orderBy("updatedAt", "desc")
+            .get();
+        const parts: Parts[] = []
+        data.forEach((doc) => {
+            const part: any = doc.data();
+            part.partId = doc.id;
+            parts.push(part);
+        });
+        return res.json(parts);
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ error: `Something went wrong :S` });
+    }
+}
+
+
+export const addParts = async (req: express.Request, res: express.Response) => {
+    try {
+        // const errors = await isValidUsr(req.body);
+        // if (Object.keys(errors).length) {
+        //     return res.status(400).json(errors);
+        // }
+        const { name, quantity } = req.body
+
+        const newPart = {
+            name,
+            quantity: parseFloat(quantity),
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+        };
+
+        const doc = await db.collection('parts').add(newPart);
+        const { id } = doc
+        return res.status(201).json({ id });
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ error: `Something went wrong :S` });
+    }
+}
+
+export const countParts = async (req: express.Request, res: express.Response) => {
+    try {
+        const { id, quantity } = req.body
+        const countPart = {
+            updatedAt: new Date().toISOString(),
+            quantity: parseFloat(quantity)
+        }
+        await db.doc(`/parts/${id}`).update(countPart)
+
+        return res.json({ message: "Part count updated successfully" });
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ error: `Something went wrong :S` });
+
+    }
+}
+
+
+export const removeParts = async (req: express.Request, res: express.Response) => {
+    try {
+        const { id } = req.body
+        await db.doc(`/parts/${id}`).delete()
+        return res.json({ message: "Part has been removed" });
+
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ error: `Something went wrong :S` });
+
     }
 }
