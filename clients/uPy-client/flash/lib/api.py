@@ -14,8 +14,3 @@ def updateParts(id, quantity):
     message = "id={}&quantity={}".format(id, quantity)
     res = requests.put(url, data=message)
     pass
-
-
-if __name__ == "__main__":
-    getParts()
-    updateParts()
