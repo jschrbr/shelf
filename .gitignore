@@ -1,2 +1,3 @@
 /node_modules
 index.js
+clients/uPy-client/flash/auth.py
