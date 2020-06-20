@@ -1,1 +1,1 @@
-rsync -m -q /pyboard/flash ./src
+rsync -m -q /pyboard/flash ./flash

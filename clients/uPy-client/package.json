@@ -5,8 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "watch": "nodemon -w ./src/ -e \"py\" -x \"./utils/on-change.sh\"",
-    "repl": "rshell --buffer-size=30 -p /dev/ttyUSB0 -f ./repl.sh "
+    "watch": "nodemon -w ./flash/ -e \"py\" -x \"./utils/on-change.sh\"",
+    "repl": "rshell --buffer-size=30 -p /dev/ttyUSB0 -f ./utils/repl.sh "
   },
   "keywords": [],
   "author": "",
